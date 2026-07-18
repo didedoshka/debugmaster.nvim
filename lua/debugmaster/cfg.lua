@@ -1,8 +1,9 @@
 ---@class dm.Cfg
 local cfg = {
   -- Debug mode keymap scheme: "default" (stock maps) or "gdb" (full modal
-  -- gdb layer, doc/keymaps-gdb-modal.md). Read once, at the first debug
-  -- mode enable (or first keys.get/add call) — set it before that.
+  -- gdb layer, doc/keymaps-gdb-modal.md). Read once and then fixed; setting
+  -- it afterwards throws, so set it first thing. Requiring debugmaster.state
+  -- resolves it too, by building the help panel.
   ---@type "default"|"gdb"
   keymaps = "default",
   widgets = {

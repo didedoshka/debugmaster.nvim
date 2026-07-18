@@ -124,6 +124,16 @@ bumped(); bumped(); bumped()
 vim.wait(500, function() return count > 0 end)
 eq(count, 1, "debounce collapses a burst into one call")
 
+-- Setting cfg.keymaps after the scheme is fixed reads as config that took
+-- effect and didn't -- the bug this guard exists for. Last, it poisons cfg.
+local dmcfg = require("debugmaster.cfg")
+dmcfg.keymaps = "gdb"
+local changed, err = pcall(require("debugmaster.debug.keymaps").get, "o")
+ok(not changed, "changing cfg.keymaps after resolution throws")
+ok(tostring(err):match("already resolved"), "the error says the scheme was already resolved")
+dmcfg.keymaps = "default"
+ok(pcall(require("debugmaster.debug.keymaps").get, "o"), "setting it back is fine")
+
 -- Verdict.
 print(("passed: %d, failed: %d"):format(passed, #failed))
 if #failed > 0 then

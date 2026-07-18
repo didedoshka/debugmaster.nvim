@@ -21,20 +21,32 @@ local M = {}
 
 ---@type dm.KeymapScheme?
 local scheme = nil
+---The cfg.keymaps value `scheme` was built from, so a later change is caught
+---rather than silently ignored.
+---@type string?
+local resolved_name = nil
 
----Resolves cfg.keymaps into a scheme module. Happens once, on first use
----(first debug mode enable or first keys.get/add call); the choice is
----fixed for the rest of the session.
+---Resolves cfg.keymaps into a scheme module. Happens once, on first use, and
+---the choice is fixed for the rest of the session. Setting cfg.keymaps after
+---that is an error: it reads as a config that took effect and didn't.
 ---@return dm.KeymapScheme
 local function resolve()
-  if not scheme then
-    local name = require("debugmaster.cfg").keymaps
-    local ok, mod = pcall(require, "debugmaster.debug.schemes." .. tostring(name))
-    if not ok then
-      error(('debugmaster: cfg.keymaps must be "default" or "gdb", got %s'):format(vim.inspect(name)))
+  local name = require("debugmaster.cfg").keymaps
+  if scheme then
+    if name ~= resolved_name then
+      error(("debugmaster: cfg.keymaps is %s but the %s scheme was already resolved. The scheme "
+        .. "is fixed by whichever comes first: require(\"debugmaster.state\"), the first debug "
+        .. "mode enable, or the first keys.get/add/oneshot call. Set cfg.keymaps before all of "
+        .. "them."):format(vim.inspect(name), vim.inspect(resolved_name)))
     end
-    scheme = mod
+    return scheme
   end
+  local ok, mod = pcall(require, "debugmaster.debug.schemes." .. tostring(name))
+  if not ok then
+    error(('debugmaster: cfg.keymaps must be "default" or "gdb", got %s'):format(vim.inspect(name)))
+  end
+  scheme = mod
+  resolved_name = name
   return scheme
 end
 
