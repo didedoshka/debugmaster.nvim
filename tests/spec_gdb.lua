@@ -93,6 +93,24 @@ vim.api.nvim_win_set_cursor(0, { 1, 0 })
 vim.api.nvim_feedkeys("j", "x", false)
 eq(vim.api.nvim_win_get_cursor(0)[1], 2, "'j' still native after second enable/disable cycle")
 
+-- 7. One-shot maps: scheme commands under a prefix, fired without the layer.
+dm.keys.add({ key = "Z", action = function() end, desc = "probe" })
+dm.keys.oneshot("<bs>")
+ok(vim.fn.maparg("<bs>n", "n", false, true).callback ~= nil, "one-shot maps a command key")
+ok(vim.fn.maparg("<bs>Z", "n", false, true).callback ~= nil, "one-shot maps keys.add() entries")
+ok(vim.fn.maparg("<bs>j", "n", false, true).callback == nil, "one-shot skips nops")
+ok(vim.fn.maparg("<bs>p", "v", false, true).callback ~= nil, "one-shot honours multi-mode specs")
+eq(vim.fn.maparg("<bs>n", "n", false, true).desc, "Step over (gdb next)", "one-shot carries the scheme desc")
+
+-- The point of the whole thing: it works with debug mode off, and leaves it off.
+ok(not mode.is_active(), "debug mode is off going into the one-shot test")
+vim.api.nvim_win_set_cursor(0, { 3, 0 })
+vim.api.nvim_feedkeys(vim.keycode("<bs>b"), "x", false)
+ok(next(require("dap.breakpoints").get()) ~= nil, "'<bs>b' sets a breakpoint outside debug mode")
+ok(not mode.is_active(), "a one-shot does not enter debug mode")
+vim.api.nvim_feedkeys(vim.keycode("<bs>d"), "x", false)
+ok(next(require("dap.breakpoints").get()) == nil, "'<bs>d' deletes it again")
+
 -- Verdict.
 print(("passed: %d, failed: %d"):format(passed, #failed))
 if #failed > 0 then

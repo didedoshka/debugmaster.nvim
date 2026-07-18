@@ -17,7 +17,8 @@ M.mode = {
 
 M.keys = {
   get = keymaps.get,
-  add = keymaps.add
+  add = keymaps.add,
+  oneshot = keymaps.oneshot
 }
 
 return M

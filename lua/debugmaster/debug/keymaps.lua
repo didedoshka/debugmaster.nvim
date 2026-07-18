@@ -64,4 +64,26 @@ function M.add(mapping)
   table.insert(resolve().misc.mappings, mapping)
 end
 
+--- Map every command of the active scheme globally under `prefix`, so a single
+--- debug action can be fired without entering debug mode: with prefix "<bs>",
+--- `<bs>n` steps over once and leaves you in normal mode.
+---
+--- Reads the scheme once, so call it after every keys.add(); mappings added
+--- afterwards get no one-shot. The prefix is the caller's to choose -- which
+--- key is worth spending is a config decision, not a plugin one.
+---@param prefix string
+function M.oneshot(prefix)
+  for _, group in ipairs(M.get_groups()) do
+    for _, mapping in ipairs(group.mappings) do
+      -- Two kinds of entry are not commands: nops exist to swallow keys
+      -- inside the layer and mean nothing outside it, and entries without an
+      -- action are help text for keys that are really buffer-local to a panel.
+      if mapping.action and not mapping.nop then
+        vim.keymap.set(mapping.modes or { "n" }, prefix .. mapping.key, mapping.action,
+          { desc = mapping.desc })
+      end
+    end
+  end
+end
+
 return M
