@@ -1,4 +1,4 @@
-local groups = require("debugmaster.debug.keymaps").groups
+local groups = require("debugmaster.debug.keymaps").get_groups()
 
 ---@class dm.State
 local M = {}

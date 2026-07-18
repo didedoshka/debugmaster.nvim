@@ -3,8 +3,11 @@ local M = {}
 
 
 local active = false
-local groups = require("debugmaster.debug.keymaps").groups
 local api = vim.api
+
+-- Resolved from the active scheme at first enable, fixed afterwards
+---@type dm.MappingsGroup[]
+local groups = {}
 
 ---@class dm.OrignalKeymap
 ---@field callback function?
@@ -54,6 +57,7 @@ M.enable = (function()
   local is_first_enable = true
   return function()
     if is_first_enable then
+      groups = require("debugmaster.debug.keymaps").get_groups()
       save_original_settings()
       is_first_enable = false
     end
