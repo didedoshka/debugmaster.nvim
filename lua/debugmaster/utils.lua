@@ -68,7 +68,7 @@ end
 ---@param dir "next"|"prev"
 function M.gotoBreakpoint(dir)
   local breakpoints = require("dap.breakpoints").get()
-  if #breakpoints == 0 then
+  if next(breakpoints) == nil then
     vim.notify("No breakpoints set", vim.log.levels.WARN)
     return
   end
