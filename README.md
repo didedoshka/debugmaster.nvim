@@ -100,6 +100,11 @@ Recipes for how to configure debugmaster for reverse debugging of c++, c, and ru
 how to display debug mode in your status line,
 starting debug neovim lua code in two keypresses and more can be found [here](./doc/RECIPES.md).
 
+## 🧪Development
+Offline test suite: `tests/run.sh` (headless, needs a local nvim-dap checkout — set
+`DEBUGMASTER_DAP` if it's not in the default lazy.nvim location). Lint/format config
+lives in `.luarc.json` (lua-language-server; run `--check` from the repo root).
+
 ## 🙏Acknowledgements  
 - Inspired by [nvim-dap-view](https://github.com/igorlfs/nvim-dap-view)  
 - [nvim-dap](https://github.com/mfussenegger/nvim-dap)
