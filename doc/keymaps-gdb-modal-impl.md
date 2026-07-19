@@ -26,7 +26,8 @@ how. Agreed and implemented 2026-07-18.
 ## 3. Nop mechanism
 
 - Enumerate every printable key the gdb scheme doesn't map and that isn't a
-  survivor, and map each through the existing save/restore machinery in
+  survivor — plus `<C-d>`/`<C-u>` (2026-07-19, no vertical movement inside
+  the layer) — and map each through the existing save/restore machinery in
   `mode.lua` — no `vim.on_key` (global, needs fragile mode/buffer guards to
   avoid eating keys in the REPL terminal and cmdline).
 - The nop is a function, not a literal `<Nop>`: in non-file buffers

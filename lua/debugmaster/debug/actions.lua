@@ -165,6 +165,36 @@ function A.sessions_widget()
   end), { expr = true, buffer = sessions.buf })
 end
 
+function A.frames_to_qf()
+  local session = require("dap").session()
+  if not session then
+    return print("No active session")
+  end
+  local thread_id = session.stopped_thread_id
+  if not thread_id then
+    return print("Session is not stopped")
+  end
+  session:request("stackTrace", { threadId = thread_id }, function(err, response)
+    if err or not response then
+      return print("stackTrace request failed: " .. tostring(err and err.message or err))
+    end
+    local items = {}
+    for i, frame in ipairs(response.stackFrames) do
+      local path = frame.source and frame.source.path
+      table.insert(items, {
+        filename = path,
+        lnum = frame.line,
+        col = frame.column,
+        text = ("#%d %s"):format(i - 1, frame.name),
+        valid = path and 1 or 0,
+      })
+    end
+    -- Pushed like :grep (not replaced), so :colder recovers the previous list
+    vim.fn.setqflist({}, " ", { title = "Backtrace", items = items })
+    vim.cmd.copen()
+  end)
+end
+
 function A.breakpoints_widget()
   local state = require("debugmaster.state")
   utils.open_floating_window(state.breakpoints.buf, {

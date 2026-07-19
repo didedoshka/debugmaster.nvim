@@ -134,6 +134,11 @@ local inspection = {
       desc = "Backtrace: frames widget",
     },
     {
+      key = "bq",
+      action = A.frames_to_qf,
+      desc = "Backtrace to quickfix",
+    },
+    {
       key = "t",
       nowait = true,
       action = A.threads_widget,
@@ -280,10 +285,12 @@ local misc = {
 
 local command_groups = { execution, breakpoints, inspection, session, ui }
 
--- Nops: every printable key without an exact command mapping is swallowed.
--- Survivors (never nop'd): count digits and the z* scroll/fold family;
--- Esc, <C-D>/<C-U>, the <C-w> family and the mouse aren't printable and
--- are untouched. Space is left alone too (leader safety, zero gdb cost).
+-- Nops: every printable key without an exact command mapping is swallowed,
+-- and so are <C-d>/<C-u>: no vertical movement may work inside the layer,
+-- so "does j (or C-d) move?" always answers which side of the layer you're
+-- on. Survivors (never nop'd): count digits and the z* scroll/fold family;
+-- Esc, the <C-w> family and the mouse aren't printable and are untouched.
+-- Space is left alone too (leader safety, zero gdb cost).
 -- Prefix-only keys (bare `i`, `[`, `]`) do get a nop, so a timed-out
 -- prefix press dies instead of falling through to a vim command.
 
@@ -304,12 +311,13 @@ for _, group in ipairs(command_groups) do
 end
 
 local function make_nop(key)
+  local keycode = vim.keycode(key)
   return function()
     -- In panels, terminal, REPL and any other special buffer the layer
     -- steps aside: replay the key (with its count) natively.
     if vim.bo.buftype ~= "" then
       local count = vim.v.count > 0 and tostring(vim.v.count) or ""
-      api.nvim_feedkeys(count .. key, "n", false)
+      api.nvim_feedkeys(count .. keycode, "n", false)
     end
   end
 end
@@ -331,6 +339,17 @@ for char = 33, 126 do
         })
       end
     end
+  end
+end
+
+for _, key in ipairs({ "<C-d>", "<C-u>" }) do
+  for _, mode in ipairs({ "n", "v" }) do
+    table.insert(nops.mappings, {
+      key = key,
+      modes = { mode },
+      action = make_nop(key),
+      nop = true,
+    })
   end
 end
 

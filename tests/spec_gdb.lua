@@ -26,6 +26,7 @@ local n = dm.keys.get("n")
 ok(n and type(n.action) == "function", 'keys.get("n") returns a real spec')
 ok(not pcall(dm.keys.get, "o"), "stock-only key 'o' is unknown in the gdb scheme")
 ok(not pcall(dm.keys.get, "j"), "nops are hidden from keys.get")
+ok(pcall(dm.keys.get, "bq"), "'bq' (backtrace to quickfix) is a known command")
 
 -- 2. Enable: gdb commands and nops are installed.
 local mode = require("debugmaster.debug.mode")
@@ -33,6 +34,7 @@ dm.mode.toggle()
 ok(mode.is_active(), "toggle() activates debug mode")
 ok(vim.fn.maparg("n", "n", false, true).callback ~= nil, "'n' (step over) is mapped")
 ok(vim.fn.maparg("j", "n", false, true).callback ~= nil, "'j' is nop-mapped")
+ok(vim.fn.maparg("<C-d>", "n", false, true).callback ~= nil, "'<C-d>' is nop-mapped")
 ok(vim.fn.maparg("p", "v", false, true).callback ~= nil, "visual 'p' (inspect) is mapped in the layer")
 ok(vim.fn.maparg("w", "v", false, true).callback ~= nil, "visual 'w' (watch) is mapped in the layer")
 ok(vim.fn.maparg("d", "v", false, true).callback ~= nil, "visual 'd' is nop-mapped (no edits in the layer)")
@@ -56,6 +58,8 @@ vim.api.nvim_feedkeys("j", "x", false)
 eq(vim.api.nvim_win_get_cursor(0)[1], 1, "'j' is a nop in a file buffer")
 vim.api.nvim_feedkeys("v", "x", false)
 eq(vim.fn.mode(), "n", "'v' is a nop: no visual mode from inside the layer")
+vim.api.nvim_feedkeys(vim.keycode("<C-d>"), "x", false)
+eq(vim.api.nvim_win_get_cursor(0)[1], 1, "'<C-d>' is a nop in a file buffer")
 
 -- 4. Nop passthrough in special buffers (panels/terminal/REPL), with count.
 local scratch = vim.api.nvim_create_buf(false, true) -- buftype=nofile
@@ -66,6 +70,8 @@ vim.api.nvim_feedkeys("j", "x", false)
 eq(vim.api.nvim_win_get_cursor(0)[1], 2, "'j' passes through in a special buffer")
 vim.api.nvim_feedkeys("2j", "x", false)
 eq(vim.api.nvim_win_get_cursor(0)[1], 4, "count survives the passthrough ('2j')")
+vim.api.nvim_feedkeys(vim.keycode("<C-u>"), "x", false)
+ok(vim.api.nvim_win_get_cursor(0)[1] < 4, "'<C-u>' passes through in a special buffer")
 
 -- 5. Help popup: gdb groups are rendered, nops are not.
 local state = require("debugmaster.state")

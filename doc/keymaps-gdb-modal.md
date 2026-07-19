@@ -25,9 +25,13 @@ History at the bottom.
 3. **Unmapped keys are nops, not passthroughs.** Passthrough would leak
    motions back in and re-create the no-man's land.
 4. **Survivors — things that move the viewport or window, never the
-   argument:** `<C-D>`/`<C-U>`/mouse wheel (scroll), the `<C-w>` family
-   (window nav — user's `<Tab>`), `z*` (scroll/folds; same viewport
-   rationale, zero gdb cost), count digits (`5n` must work), `Esc`.
+   argument:** mouse wheel (scroll), the `<C-w>` family (window nav —
+   user's `<Tab>`), `z*` (scroll/folds; viewport-only, zero gdb cost),
+   count digits (`5n` must work), `Esc`. Revised 2026-07-19: `<C-D>`/`<C-U>`
+   were survivors at first but are nop'd now, and freeing `j`/`k`/`v` was
+   considered and rejected — **no vertical movement works inside the layer**,
+   so "does j (or C-d) move?" always answers which side of the layer you're
+   on. Layer confusion beats scroll convenience.
 5. **Uppercase = UI namespace.** Sticky-shift makes uppercase a two-press =
    cold tier. Lowercase talks to the debugger; uppercase manipulates panels.
 6. **Hot keys are prefix-free and `nowait`:** `c n s p t e w q <CR>` — nothing
@@ -76,6 +80,7 @@ on this keyboard; the user will redesign bracket commands globally and
 |-------------|-------------------------------|------------------------------------|
 | `p`         | print (hover inspect)         | gdb `print`; cursor word is the arg |
 | `bt`        | backtrace (frames float)      | literal gdb — recovered!           |
+| `bq`        | backtrace → quickfix          | pushed like `:grep`, `:colder` works |
 | `t`         | threads float                 | gdb `thread`; instant today        |
 | `w`         | watch cursor word, open panel | gdb `watch`; the fork's normal `dp` |
 | `ib` / `is` | breakpoints / sessions widget | gdb `info` group                   |
@@ -137,7 +142,7 @@ needed.
 
 ## Timeout mechanics
 
-Prefix keys: `b` (bt, bc), `f` (fin), `u` (up), `d` (do), `r` (rc/rs/rn),
+Prefix keys: `b` (bt, bc, bq), `f` (fin), `u` (up), `d` (do), `r` (rc/rs/rn),
 `i` (ib, is). All cold-tier; hot keys never wait. With motions gone, a delayed
 prefix no longer holds anything hostage — the misfire analysis that dominated
 Designs A/B is void. Lowering `timeoutlen` inside the layer remains an option,
