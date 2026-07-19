@@ -12,7 +12,6 @@ function Scopes.new()
   api.nvim_win_close(scopes_win, true)
   self.buf = scopes_buf
   self.name = "[S]copes"
-  vim.keymap.set("n", "<Tab>", "<CR>", {buffer = self.buf, remap = true})
   vim.keymap.del("n", "o", {buffer = self.buf })
 
   vim.keymap.set("n", "r", scopes.refresh, {buffer = self.buf})

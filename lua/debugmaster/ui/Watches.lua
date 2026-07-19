@@ -51,10 +51,6 @@ function Watches:_setup_keymaps()
     self:_expand_or_collapse()
   end, opts)
 
-  vim.keymap.set("n", "<Tab>", function()
-    self:_expand_or_collapse()
-  end, opts)
-
   -- Add new expression (append)
   vim.keymap.set("n", "a", function()
     self:_new_expression(true)
