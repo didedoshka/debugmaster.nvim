@@ -41,6 +41,16 @@ function Sidepanel.new()
     end
   })
 
+  -- winbar indents are computed for the width at open time; recook them when
+  -- this window's size changes (splits, <C-w> resizes -- not just VimResized)
+  api.nvim_create_autocmd("WinResized", {
+    callback = function()
+      if self:is_open() and vim.tbl_contains(vim.v.event.windows or {}, self.win) then
+        self:_cook_winbar()
+      end
+    end
+  })
+
   return self
 end
 
@@ -112,7 +122,6 @@ function Sidepanel:open(opts)
 end
 
 function Sidepanel:_cook_winbar()
-  -- TODO: redraw on resize
   local win_width = api.nvim_win_get_width(self.win)
   local join_text_width = 0
   for _, comp in ipairs(self.components) do
