@@ -14,7 +14,7 @@ fi
 
 # Each spec gets its own nvim: keymap scheme resolution is once-per-process.
 status=0
-for spec in tests/spec.lua tests/spec_gdb.lua; do
+for spec in tests/spec.lua tests/spec_gdb.lua tests/spec_ui.lua; do
   nvim --headless --clean --cmd "set rtp+=$PWD,$DAP" -l "$spec" || status=1
 done
 exit "$status"

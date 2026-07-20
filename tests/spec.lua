@@ -135,7 +135,7 @@ dmcfg.keymaps = "default"
 ok(pcall(require("debugmaster.debug.keymaps").get, "o"), "setting it back is fine")
 
 -- Verdict.
-print(("passed: %d, failed: %d"):format(passed, #failed))
+io.write(("passed: %d, failed: %d\n"):format(passed, #failed))
 if #failed > 0 then
   os.exit(1)
 end
