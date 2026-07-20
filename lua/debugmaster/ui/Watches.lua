@@ -664,8 +664,11 @@ function Watches:add_cursor_expr(expr)
       api.nvim_feedkeys(keys, "x", false)
       expression = self:_get_visual_selection()
     else
-      -- Use <cexpr> to capture full C-style expressions like abc[12], foo.bar, etc.
-      expression = vim.fn.expand("<cexpr>")
+      -- <cexpr> grows *leftward* from the cursor, not rightward: on `field` in
+      -- `arr[12].field` it yields the whole chain, on `arr` just `arr`. It also
+      -- throws E348 on a blank line, so an empty result is the "nothing here" path.
+      local ok, cexpr = pcall(vim.fn.expand, "<cexpr>")
+      expression = ok and cexpr or ""
     end
   end
 
