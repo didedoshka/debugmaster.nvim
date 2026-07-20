@@ -44,6 +44,24 @@ ok(dm.keys.get("Z").desc == "spec dummy", "keys.add makes the key retrievable")
 
 -- 4. Debug mode end-to-end: real keymap save/override/restore.
 vim.keymap.set("n", "o", "k", { desc = "orig-o" })
+-- an expr mapping among the originals: restored without expr it still runs but
+-- its return value is dropped, so the key silently stops doing anything
+vim.keymap.set("n", "t", function() return "l" end, { expr = true, desc = "orig-t" })
+
+-- Every normal-mode mapping, with the flags that decide how it behaves. The
+-- invariant is that disable() puts this back exactly: keys the user never
+-- mapped must be *removed*, not left mapped to themselves (a leftover
+-- multi-key mapping makes its first key wait out timeoutlen).
+local function keymap_snapshot()
+  local out = {}
+  for _, m in ipairs(vim.api.nvim_get_keymap("n")) do
+    out[m.lhs] = ("%s|%s|%s|e%s|s%s|n%s|r%s"):format(
+      m.rhs or "", tostring(m.desc), m.callback and "fn" or "-",
+      m.expr, m.silent, m.nowait, m.noremap)
+  end
+  return out
+end
+local maps_before = keymap_snapshot()
 local mode = require("debugmaster.debug.mode")
 local events = 0
 vim.api.nvim_create_autocmd("User", {
@@ -84,6 +102,22 @@ dm.mode.toggle()
 dm.mode.toggle()
 restored = vim.fn.maparg("o", "n", false, true)
 ok(restored.rhs == "k" and restored.desc == "orig-o", "'o' still original after second enable/disable cycle")
+
+local maps_after = keymap_snapshot()
+local diffs = {}
+for lhs, sig in pairs(maps_before) do
+  if maps_after[lhs] ~= sig then
+    table.insert(diffs, ("%s: %s -> %s"):format(lhs, sig, tostring(maps_after[lhs])))
+  end
+end
+for lhs in pairs(maps_after) do
+  if maps_before[lhs] == nil then
+    table.insert(diffs, ("%s: leftover (%s)"):format(lhs, maps_after[lhs]))
+  end
+end
+table.sort(diffs)
+ok(#diffs == 0, "every normal-mode mapping is byte-identical after enable/disable: "
+  .. table.concat(diffs, "; "))
 eq(events, 4, "DebugModeChanged fired once per enable/disable")
 
 -- 5. State graph: sidepanel and every component exist with real buffers.

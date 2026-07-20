@@ -41,11 +41,19 @@ local function save_original_settings()
             originals[mode] = {}
           end
           local orig = lhs_to_map[mode][key] or {}
+          -- nvim_get_keymap reports these as 0/1, and 0 is truthy in Lua, so
+          -- passing them through raw restores every mapping as silent. expr is
+          -- the one that bites hardest: an expr mapping restored without it
+          -- still runs, but its return value is dropped, so the key does
+          -- nothing at all.
           originals[mode][key] = {
             callback = orig.callback,
             rhs = orig.rhs,
             desc = orig.desc,
-            silent = orig.silent,
+            silent = orig.silent == 1,
+            expr = orig.expr == 1,
+            nowait = orig.nowait == 1,
+            remap = orig.noremap == 0,
           }
         end
       end
@@ -90,11 +98,21 @@ function M.disable()
         local key = mapping.key
         for _, mode in ipairs(mapping.modes or { "n" }) do
           local orig = originals[mode][key]
-          local rhs = orig.callback or orig.rhs or key
-          vim.keymap.set(mode, key, rhs, {
-            desc = orig.desc,
-            silent = orig.silent,
-          })
+          local rhs = orig.callback or orig.rhs
+          if rhs then
+            vim.keymap.set(mode, key, rhs, {
+              desc = orig.desc,
+              silent = orig.silent,
+              expr = orig.expr,
+              nowait = orig.nowait,
+              remap = orig.remap,
+            })
+          else
+            -- Nothing was mapped here before, so restoring means removing ours,
+            -- not mapping the key to itself. A leftover multi-key mapping (bc,
+            -- bq, bt) keeps its first key waiting out timeoutlen in normal mode.
+            pcall(vim.keymap.del, mode, key)
+          end
         end
       end
     end
