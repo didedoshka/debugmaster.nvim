@@ -69,11 +69,31 @@ function A.repeat_last()
 end
 
 -- Breakpoints
+--
+-- persistent-breakpoints.nvim is optional, like snacks.nvim above: dap stays
+-- the only hard dependency. When it's installed, every mutation below also
+-- syncs dap's current breakpoint state to disk via its store_breakpoints(),
+-- which re-reads breakpoints.get() itself -- so it works regardless of which
+-- dap call produced the change, and needs no per-action API mapping.
+local function persist_breakpoints()
+  local ok, bp = pcall(require, "persistent-breakpoints.api")
+  if ok then
+    bp.store_breakpoints()
+  end
+end
 
-function A.toggle_breakpoint() require("dap").toggle_breakpoint() end
+function A.toggle_breakpoint()
+  require("dap").toggle_breakpoint()
+  persist_breakpoints()
+end
 
 function A.clear_breakpoints()
-  require("dap").clear_breakpoints()
+  local ok, bp = pcall(require, "persistent-breakpoints.api")
+  if ok then
+    bp.clear_all_breakpoints() -- also wipes the on-disk store, not just dap
+  else
+    require("dap").clear_breakpoints()
+  end
   print("All breakpoints removed")
 end
 
@@ -81,6 +101,7 @@ function A.conditional_breakpoint()
   local condition = vim.fn.input({ prompt = "Enter breakpoint condition: " })
   if condition ~= "" then
     require("dap").toggle_breakpoint(condition)
+    persist_breakpoints()
   end
 end
 
@@ -92,6 +113,7 @@ function A.contextual_delete()
   for _, bp in ipairs(require("dap.breakpoints").get(buf)[buf] or {}) do
     if bp.line == line then
       require("dap").toggle_breakpoint()
+      persist_breakpoints()
       return
     end
   end
