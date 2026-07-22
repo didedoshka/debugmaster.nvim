@@ -31,5 +31,7 @@ Fork of debugmaster.nvim with a watches panel, developed locally through Claude.
 - 2-space indent. Formatting comes from lua_ls/EmmyLuaCodeStyle via the `format`
   block in `.luarc.json` — no stylua, don't add it.
 - Keep `---@class dm.*` annotations truthful; the lint gates on them.
-- Don't commit unless asked. Commits: on `main`, `area: lowercase summary`,
-  `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
+- Commit each verified change (suite + lua-ls green) without asking: on `main`,
+  `area: lowercase summary`, `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
+  Never rewrite history -- no amend, rebase, or reset past a commit; fix forward
+  with a new commit, so nothing is ever lost.
