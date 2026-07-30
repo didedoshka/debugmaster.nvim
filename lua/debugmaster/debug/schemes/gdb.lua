@@ -104,12 +104,12 @@ local breakpoints = {
       desc = "Delete breakpoint on line, else delete all (confirms)",
     },
     {
-      key = "[b",
+      key = "bp",
       action = A.prev_breakpoint,
       desc = "Go to previous breakpoint",
     },
     {
-      key = "]b",
+      key = "bn",
       action = A.next_breakpoint,
       desc = "Go to next breakpoint",
     },

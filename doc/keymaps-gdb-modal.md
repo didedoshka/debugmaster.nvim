@@ -66,13 +66,15 @@ n-n-n-Enter hammer rhythm as a real gdb prompt, and Enter is a thumb key.
 | `b`           | toggle breakpoint       | gdb `break`; cursor line is the arg  |
 | `bc`          | conditional breakpoint  | reads "break, conditional"           |
 | `d`           | contextual delete       | line bp if present, else delete-all  |
-| `[b` / `]b`   | previous / next bp      | **pending** — see below              |
+| `bp` / `bn`   | previous / next bp      | reads "break, previous/next"         |
 
 `bc` is not literal gdb: `condition` would make `c` a prefix, which is
 unacceptable. Contextual `d` covers both gdb's bare `delete` and per-bp
-deletion (delete-all confirms first). Every bracket command is three presses
-on this keyboard; the user will redesign bracket commands globally and
-`[b`/`]b` follows that decision.
+deletion (delete-all confirms first). `bp`/`bn` replaced the once-pending
+`[b`/`]b`: that pair is nvim's native buffer-nav default (0.11+), so reusing
+it with another meaning fights muscle memory, and every bracket command is
+three presses on this keyboard anyway — two letters in the existing `b`
+chord family cost less and collide with nothing.
 
 ### Inspection
 
@@ -174,8 +176,9 @@ work needed.
 | `df`          | `bt`    | `U`       | `F`         |
 | `dt`          | `t`     | `{`/`}`   | `<`/`>`     |
 | `db`          | `ib`    | `ds`      | `is`        |
+| `[b`/`]b`     | `bp`/`bn` |         |             |
 
-Unchanged: `c`, `W`, `S` `T` `R` `H`, `-`/`+`, `[b`/`]b` (pending),
+Unchanged: `c`, `W`, `S` `T` `R` `H`, `-`/`+`,
 watches-panel-local keys.
 
 ## History
