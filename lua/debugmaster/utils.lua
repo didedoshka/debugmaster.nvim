@@ -100,21 +100,6 @@ function M.gotoBreakpoint(dir)
   vim.cmd(("buffer +%s %s"):format(nextPoint.line, nextPoint.bufnr))
 end
 
-function M.make_center_float_win_cfg()
-  local height = math.ceil(math.min(vim.o.lines, math.max(20, vim.o.lines - 5)))
-  local width = math.ceil(math.min(vim.o.columns, math.max(80, vim.o.columns - 10)))
-  ---@type vim.api.keyset.win_config
-  local cfg = {
-    relative = "editor",
-    border = "rounded",
-    width = width,
-    height = height,
-    row = math.ceil(vim.o.lines - height) * 0.5 - 1,
-    col = math.ceil(vim.o.columns - width) * 0.5 - 1
-  }
-  return cfg
-end
-
 ---@param win number
 function M.register_to_close_on_leave(win)
   local id
@@ -132,16 +117,6 @@ end
 ---@return string
 function M.status_line_apply_hl(str, hlGroup)
   return "%#" .. hlGroup .. "#" .. str .. "%*"
-end
-
-function M.get_windows_for_buffer(buf)
-  local windows = {}
-  for _, win in ipairs(api.nvim_list_wins()) do
-    if api.nvim_win_get_buf(win) == buf then
-      table.insert(windows, win)
-    end
-  end
-  return windows
 end
 
 function M.open_floating_window(buf, opts)

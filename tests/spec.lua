@@ -134,14 +134,6 @@ ok(state.watches:add_watch_expr("some_var", false) == false, "add_watch_expr ret
 local utils = require("debugmaster.utils")
 eq(utils.status_line_apply_hl("txt", "Hl"), "%#Hl#txt%*", "status_line_apply_hl formats correctly")
 
-local cfg = utils.make_center_float_win_cfg()
-ok(cfg.relative == "editor" and cfg.width <= vim.o.columns and cfg.height >= 20,
-  "make_center_float_win_cfg returns a sane editor-relative config")
-
-local curwin = vim.api.nvim_get_current_win()
-local wins = utils.get_windows_for_buffer(vim.api.nvim_get_current_buf())
-ok(vim.tbl_contains(wins, curwin), "get_windows_for_buffer finds the current window")
-
 -- open_floating_window: snacks is absent under --clean, so this exercises the
 -- native-float fallback even though cfg.use_snacks defaults to true.
 local fbuf = vim.api.nvim_create_buf(false, true)

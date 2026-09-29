@@ -38,8 +38,6 @@ end
 
 function A.quit()
   require("dap").terminate()
-  local state = require("debugmaster.state")
-  state.sidepanel:close()
 end
 
 function A.exit_mode()
@@ -128,12 +126,8 @@ function A.next_breakpoint() utils.gotoBreakpoint("next") end
 
 -- Sidepanel
 
-function A.toggle_sidepanel()
-  require("debugmaster.state").sidepanel:toggle()
-end
-
-function A.toggle_layout()
-  require("debugmaster.state").sidepanel:toggle_layout()
+function A.open_or_focus_sidepanel()
+  require("debugmaster.state").sidepanel:open_or_focus()
 end
 
 local function open_component(name)
@@ -150,14 +144,6 @@ function A.open_repl() open_component("repl") end
 function A.open_help() open_component("help") end
 
 function A.open_watches() open_component("watches") end
-
-function A.rotate_cw() require("debugmaster.state").sidepanel:rotate(1) end
-
-function A.rotate_ccw() require("debugmaster.state").sidepanel:rotate(-1) end
-
-function A.resize_inc() require("debugmaster.state").sidepanel:resize(10) end
-
-function A.resize_dec() require("debugmaster.state").sidepanel:resize(-10) end
 
 -- Float widgets & inspection
 
@@ -264,11 +250,10 @@ function A.move_terminal()
   end
   local ok = terminal:attach_terminal_to_current_session(buf)
   if ok then
-    for _, win in ipairs(utils.get_windows_for_buffer(buf)) do
-      api.nvim_win_close(win, true)
-    end
-    state.sidepanel:open()
+    -- no window closes: the panel switches to its terminal section where it
+    -- is, or, when it is nowhere on screen, takes this window
     state.sidepanel:set_active(terminal)
+    state.sidepanel:open()
   end
 end
 

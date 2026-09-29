@@ -55,10 +55,9 @@ NOTE: Don't mix this plugin with dap-ui!
 1. Configure your debug adapters using nvim-dap.  
 2. Press `<leader>d` to toggle debug mode.  
 3. Press `H` in debug mode to view available commands.  
-4. Toggle the side panel with `u`.  
-5. Toggle float mode with `U` if the side panel has too little space to display content.  
-6. Set/toggle breakpoints with `t` and start debugging with `c`.  
-7. Navigate through debug sessions using debug mode keymaps (`o` - step over, `m` - step into, `q` - step out, `r`- run to cursor). You can view all of them in the Help section by pressing `H`. 
+4. Open the side panel in the current window with `L`; from another window, `L` takes you to it.  
+5. Set/toggle breakpoints with `t` and start debugging with `c`.  
+6. Navigate through debug sessions using debug mode keymaps (`o` - step over, `m` - step into, `q` - step out, `r`- run to cursor). You can view all of them in the Help section by pressing `H`. 
 
 ## 🤔Design Philosophy  
 You can find explanations regarding the choice of these keymaps and a dap-view-like UI [here](./doc/designphilosophy.md)

@@ -47,21 +47,6 @@ plugins.ui_auto_toggle = (function()
       dap.listeners.before.attach["debugmaster"] = function()
         require("debugmaster.state").sidepanel:open()
       end
-
-      dap.listeners.before.event_terminated["debugmaster"] = function()
-        require("debugmaster.state").sidepanel:close()
-        print("dap terminated")
-      end
-
-      dap.listeners.before.event_exited["debugmaster"] = function()
-        require("debugmaster.state").sidepanel:close()
-        print("dap exited")
-      end
-
-      dap.listeners.before.disconnect["debugmaster"] = function()
-        require("debugmaster.state").sidepanel:close()
-        print("dap disconnected")
-      end
     end
   }
   return plugin

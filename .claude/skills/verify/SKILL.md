@@ -16,8 +16,8 @@ What the suite really covers: every module loads against real nvim-dap; the publ
 surface; keymap registry get/add/error; debug-mode enable/disable with real keymap
 override + exact restore across cycles; a real `t` keypress setting a real dap
 breakpoint; `gotoBreakpoint` navigation + wraparound; the `DebugModeChanged` event
-contract; watches' no-session refusal; utils (statusline hl, float configs, the
-snacks-absent float fallback, debounce).
+contract; watches' no-session refusal; utils (statusline hl, the snacks-absent
+float fallback, debounce).
 
 Division of labor, measured not assumed: lua-ls finds undefined globals/wrong
 annotations but is blind to cross-module breakage (a deleted function with live

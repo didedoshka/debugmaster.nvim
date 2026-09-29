@@ -112,14 +112,11 @@ key and implementation TBD.
 
 ### UI (uppercase family)
 
-| Key                 | Action                      | Notes                     |
-|---------------------|-----------------------------|---------------------------|
-| `U`                 | toggle sidepanel            | was stock `L`             |
-| `F`                 | toggle float layout         | was stock `U`             |
-| `S` `T` `R` `H` `W` | scopes/term/REPL/help/watch | `W` unchanged from fork   |
-| `M`                 | move terminal into panel    | was stock `dm`            |
-| `<` / `>`           | rotate panel                | was `{`/`}`; two-press, cold |
-| `-` / `+`           | resize panel                | unchanged; two-press, cold |
+| Key                 | Action                         | Notes                   |
+|---------------------|--------------------------------|-------------------------|
+| `U`                 | open panel here, or go to it   | was stock `L`           |
+| `S` `T` `R` `H` `W` | scopes/term/REPL/help/watch    | `W` unchanged from fork |
+| `M`                 | move terminal into panel       | was stock `dm`          |
 
 Watches-panel-internal keys (`a i d e s c r <CR>`, buffer-local in
 Watches.lua) are untouched — inside a panel buffer its own maps rule, the
@@ -173,12 +170,12 @@ work needed.
 | `dc`          | `bc`    | `dm`      | `M`         |
 | `da`          | `d`     | `[s`/`]s` | `do`/`up`   |
 | `dj`          | `f`     | `L`       | `U`         |
-| `df`          | `bt`    | `U`       | `F`         |
-| `dt`          | `t`     | `{`/`}`   | `<`/`>`     |
+| `df`          | `bt`    |           |             |
+| `dt`          | `t`     |           |             |
 | `db`          | `ib`    | `ds`      | `is`        |
 | `[b`/`]b`     | `bp`/`bn` |         |             |
 
-Unchanged: `c`, `W`, `S` `T` `R` `H`, `-`/`+`,
+Unchanged: `c`, `W`, `S` `T` `R` `H`,
 watches-panel-local keys.
 
 ## History

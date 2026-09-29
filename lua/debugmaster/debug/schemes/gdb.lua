@@ -199,13 +199,8 @@ local ui = {
   mappings = {
     {
       key = "U",
-      action = A.toggle_sidepanel,
-      desc = "Toggle sidepanel",
-    },
-    {
-      key = "F",
-      action = A.toggle_layout,
-      desc = "Toggle ui float mode",
+      action = A.open_or_focus_sidepanel,
+      desc = "Open sidepanel here, or go to it",
     },
     {
       key = "S",
@@ -236,26 +231,6 @@ local ui = {
       key = "M",
       action = A.move_terminal,
       desc = "Move current terminal to the 'Terminal' segment",
-    },
-    {
-      key = ">",
-      action = A.rotate_cw,
-      desc = "Rotate sidepanel clockwise",
-    },
-    {
-      key = "<",
-      action = A.rotate_ccw,
-      desc = "Rotate sidepanel anticlockwise",
-    },
-    {
-      key = "-",
-      action = A.resize_dec,
-      desc = "Decrease sidepanel size",
-    },
-    {
-      key = "+",
-      action = A.resize_inc,
-      desc = "Increase sidepanel size",
     },
   }
 }

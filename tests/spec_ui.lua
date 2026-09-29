@@ -455,6 +455,18 @@ eq(sess.log[1].args.expression, "explicit_expr", "an explicit expression is used
 -- 11. Sidepanel -------------------------------------------------------------
 
 vim.cmd("only")
+local function scratch_file(lines)
+  local path = vim.fn.tempname()
+  vim.fn.writefile(lines, path)
+  vim.cmd.edit(path)
+  return vim.api.nvim_get_current_buf()
+end
+scratch_file({ "alt" })
+local src_buf = scratch_file({ "1", "2", "3", "4", "5" })
+vim.cmd("normal! 4G")
+vim.wo.number = true
+local src_win = vim.api.nvim_get_current_win()
+
 local panel = Sidepanel.new()
 local function component(name)
   return { name = name, buf = vim.api.nvim_create_buf(false, true) }
@@ -462,173 +474,83 @@ end
 local one, two = component("[O]ne"), component("[T]wo")
 panel:add_component(one)
 panel:add_component(two)
-
-ok(not panel:is_open(), "a new sidepanel is closed")
-panel:set_active_with_open(one)
-ok(panel:is_open(), "set_active_with_open opens it")
-eq(vim.api.nvim_win_get_buf(panel.win), one.buf, "showing the active component")
-ok(not panel:is_focused(), "and does not steal focus for a split")
-
-local winbar = vim.wo[panel.win].winbar
-ok(winbar:find("[O]ne", 1, true) and winbar:find("[T]wo", 1, true), "the winbar lists every component")
-ok(winbar:find("%#Exception#", 1, true), "the active component is highlighted in the winbar")
-
-panel:set_active(two)
-eq(vim.api.nvim_win_get_buf(panel.win), two.buf, "set_active swaps the visible buffer")
-
-panel:toggle()
-ok(not panel:is_open(), "toggle closes an open panel")
-panel:toggle()
-ok(panel:is_open(), "and opens it again")
-eq(vim.api.nvim_win_get_buf(panel.win), two.buf, "reopening keeps the active component")
-
--- rotation goes clockwise and survives a full circle
-eq(panel.direction, "right", "the default direction is right")
-for _, want in ipairs({ "below", "left", "above", "right" }) do
-  panel:rotate(1)
-  eq(panel.direction, want, "rotate(1) moves to " .. want)
-  ok(panel:is_open(), "the panel stays open across rotate(" .. want .. ")")
-end
-panel:rotate(-1)
-eq(panel.direction, "above", "rotate(-1) goes back anticlockwise")
-panel:rotate(1)
-
--- resize clamps instead of collapsing the window
-panel.size = 50
-panel:resize(30)
-eq(panel.size, 80, "resize adds its step")
-panel:resize(30)
-eq(panel.size, 90, "and clamps at 90")
-panel:resize(-100)
-eq(panel.size, 10, "and at 10")
-panel.size = 50
-panel:resize(0)
-
--- float layout
-panel:toggle_layout()
-ok(panel.float, "toggle_layout switches to a float")
-ok(vim.api.nvim_win_get_config(panel.win).relative ~= "", "and the window really is floating")
-panel:toggle_layout()
-ok(not panel.float, "toggling again returns to a split")
-eq(vim.api.nvim_win_get_config(panel.win).relative, "", "which is not floating")
-
--- rotate and resize are no-ops while floating
-panel:toggle_layout()
-local before = panel.direction
-panel:rotate(1)
-eq(panel.direction, before, "rotate does nothing to a float")
-panel.size = 50
-panel:resize(20)
-eq(panel.size, 50, "resize does nothing to a float")
-panel:toggle_layout()
-
--- a component that swaps its buffer is picked up through the User autocmd
-local fresh = vim.api.nvim_create_buf(false, true)
-two.buf = fresh
-vim.api.nvim_exec_autocmds("User", { pattern = "WidgetBufferNumberChanged" })
-vim.wait(200, function()
-  return vim.api.nvim_win_get_buf(panel.win) == fresh
-end)
-eq(vim.api.nvim_win_get_buf(panel.win), fresh, "the panel follows a component's new buffer")
-
-panel:close()
-ok(not panel:is_open(), "close closes it")
-panel:close()
-ok(not panel:is_open(), "closing an already closed panel is harmless")
 panel:set_active(one)
-ok(not panel:is_open(), "set_active on a closed panel does not open it")
+ok(not panel:is_open(), "set_active on a new panel does not open it")
 
--- 12. Sidepanel in place ----------------------------------------------------
-
-vim.cmd("only")
-local function scratch_file(lines)
-  local path = vim.fn.tempname()
-  vim.fn.writefile(lines, path)
-  vim.cmd.edit(path)
-  return vim.api.nvim_get_current_buf()
-end
-local alt_buf = scratch_file({ "alt" })
-local src_buf = scratch_file({ "1", "2", "3", "4", "5" })
-vim.cmd("normal! 4G")
-vim.wo.number = true
-local src_win = vim.api.nvim_get_current_win()
-local jumps = #vim.fn.getjumplist()[1]
-
-local inplace = Sidepanel.new()
-inplace:add_component(one)
-inplace:add_component(two)
-inplace:set_active(one)
-inplace.inplace = true
-
-inplace:toggle()
-eq(#vim.api.nvim_tabpage_list_wins(0), 1, "in place, opening adds no window")
-eq(inplace.win, src_win, "the panel takes the current window")
+panel:open_or_focus()
+eq(#vim.api.nvim_tabpage_list_wins(0), 1, "opening adds no window")
+eq(panel.win, src_win, "the panel takes the current window")
 eq(vim.api.nvim_win_get_buf(src_win), one.buf, "showing the active component")
 ok(not vim.wo[src_win].number, "with the panel's window options")
-ok(vim.wo[src_win].winbar:find("[O]ne", 1, true), "and its winbar")
+local winbar = vim.wo[src_win].winbar
+ok(winbar:find("[O]ne", 1, true) and winbar:find("[T]wo", 1, true), "the winbar lists every component")
+ok(winbar:find("%#Exception#", 1, true), "the active component is highlighted in the winbar")
+eq(vim.fn.bufnr("#"), src_buf, "# is the buffer the panel replaced, so <C-^> goes back to it")
 
-inplace:set_active(two)
+local jumps = #vim.fn.getjumplist()[1]
+panel:set_active(two)
 eq(vim.api.nvim_win_get_buf(src_win), two.buf, "set_active swaps within the same window")
+eq(vim.fn.bufnr("#"), src_buf, "without moving #")
+eq(#vim.fn.getjumplist()[1], jumps, "or the jumplist")
 
-inplace:rotate(1)
-inplace:resize(10)
-eq(#vim.api.nvim_tabpage_list_wins(0), 1, "rotate and resize are no-ops in place")
-ok(inplace:is_open(), "and leave the panel open")
+panel:open_or_focus()
+eq(vim.api.nvim_win_get_buf(src_win), two.buf, "open_or_focus in the panel's own window does nothing")
+eq(#vim.api.nvim_tabpage_list_wins(0), 1, "and closes nothing")
 
-inplace:toggle()
-eq(vim.api.nvim_win_get_buf(src_win), src_buf, "closing gives the window its buffer back")
-eq(vim.api.nvim_win_get_cursor(src_win)[1], 4, "on the line it was on")
+vim.cmd("buffer #")
+eq(vim.api.nvim_win_get_cursor(src_win)[1], 4, "your own <C-^> finds the buffer on the line it was on")
 ok(vim.wo[src_win].number, "with its own window options")
 eq(vim.wo[src_win].winbar, "", "and no panel winbar")
-eq(vim.fn.bufnr("#"), alt_buf, "the alternate file is untouched")
-eq(#vim.fn.getjumplist()[1], jumps, "and so is the jumplist")
+ok(not panel:is_open(), "the covered panel is off screen")
+panel:open_or_focus()
+eq(vim.api.nvim_win_get_buf(src_win), two.buf, "and open_or_focus brings it back to the current window")
 
-vim.cmd("enew")
-ok(vim.wo[src_win].number, "a buffer entering the window later keeps the window's options")
+local fresh = vim.api.nvim_create_buf(true, false)
+vim.cmd.buffer(fresh)
+ok(vim.wo[src_win].number, "a buffer new to the window keeps the window's options")
 eq(vim.wo[src_win].winbar, "", "and gets no panel winbar")
-vim.cmd.buffer(src_buf)
 
-inplace:toggle()
+-- with the panel on screen elsewhere, the current window is left alone
 vim.cmd.buffer(src_buf)
-ok(not inplace:is_open(), "leaving the panel buffer by hand closes the panel")
-inplace:toggle()
-eq(vim.api.nvim_win_get_buf(src_win), two.buf, "so toggle opens it again instead of closing it")
-inplace:toggle()
-
--- the panel stays in its window, whichever window is current
 vim.cmd("vsplit")
 local other_win = vim.api.nvim_get_current_win()
 vim.api.nvim_set_current_win(src_win)
-inplace:toggle()
+panel:open_or_focus()
 vim.api.nvim_set_current_win(other_win)
-vim.api.nvim_exec_autocmds("VimResized", {})
-eq(inplace.win, src_win, "VimResized leaves an in-place panel in its window")
-eq(vim.api.nvim_win_get_buf(other_win), src_buf, "without taking the current one")
-inplace:toggle()
-eq(vim.api.nvim_win_get_buf(src_win), src_buf, "toggle from another window gives the panel's window back")
-vim.cmd("only")
 
--- float mode floats, and toggling back returns in place
-inplace:toggle()
-inplace:toggle_layout()
-ok(inplace.float and vim.api.nvim_win_get_config(inplace.win).relative ~= "", "toggle_layout floats the panel")
-eq(vim.api.nvim_win_get_buf(other_win), src_buf, "handing its window back first")
-inplace:toggle_layout()
-eq(inplace.win, other_win, "and toggling again returns it in place")
-inplace:toggle()
+panel:set_active_with_open(one)
+eq(vim.api.nvim_win_get_buf(src_win), one.buf, "set_active_with_open switches the panel where it is")
+eq(vim.api.nvim_win_get_buf(other_win), src_buf, "leaving the current window alone")
+eq(vim.api.nvim_get_current_win(), other_win, "and the focus too")
 
-local doomed = vim.api.nvim_create_buf(true, true)
-vim.api.nvim_win_set_buf(other_win, doomed)
-inplace:toggle()
-vim.api.nvim_buf_delete(doomed, { force = true })
-inplace:toggle()
-ok(vim.api.nvim_win_is_valid(other_win), "a window whose buffer was wiped meanwhile survives the close")
-ok(not inplace:is_open(), "and the panel does leave it")
-ok(not vim.tbl_contains({ one.buf, two.buf }, vim.api.nvim_win_get_buf(other_win)), "for a fresh buffer")
+panel:open_or_focus()
+eq(vim.api.nvim_get_current_win(), src_win, "open_or_focus from another window goes to the panel")
+eq(vim.api.nvim_win_get_buf(other_win), src_buf, "without touching the window it left")
 
+-- a component that swaps its buffer is picked up through the User autocmd
+one.buf = vim.api.nvim_create_buf(false, true)
+vim.api.nvim_exec_autocmds("User", { pattern = "WidgetBufferNumberChanged" })
+vim.wait(200, function()
+  return vim.api.nvim_win_get_buf(src_win) == one.buf
+end)
+eq(vim.api.nvim_win_get_buf(src_win), one.buf, "the panel follows a component's new buffer")
+
+-- ...but only while it is on screen: nothing pulls it back over your buffer
+vim.cmd.buffer(src_buf)
+one.buf = vim.api.nvim_create_buf(false, true)
+vim.api.nvim_exec_autocmds("User", { pattern = "WidgetBufferNumberChanged" })
+vim.wait(50)
+eq(vim.api.nvim_win_get_buf(src_win), src_buf, "a covered panel stays covered")
+
+vim.api.nvim_set_current_win(other_win)
+panel:set_active_with_open(two)
+eq(vim.api.nvim_win_get_buf(other_win), two.buf, "off screen, set_active_with_open opens it here")
+eq(vim.api.nvim_win_get_buf(src_win), src_buf, "not in the window it was last in")
+
+vim.cmd.buffer(src_buf)
 vim.wo[other_win].winfixbuf = true
-inplace:toggle()
-ok(not inplace:is_open(), "'winfixbuf' refuses the panel")
+panel:open_or_focus()
+ok(not panel:is_open(), "'winfixbuf' refuses the panel")
 vim.wo[other_win].winfixbuf = false
 
 io.write(("passed: %d, failed: %d\n"):format(passed, #failed))

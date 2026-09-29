@@ -44,13 +44,8 @@ local sidepanel = {
   mappings = {
     {
       key = "L",
-      action = A.toggle_sidepanel,
-      desc = "Toggle ui",
-    },
-    {
-      key = "U",
-      action = A.toggle_layout,
-      desc = "Toggle ui float mode",
+      action = A.open_or_focus_sidepanel,
+      desc = "Open ui here, or go to it",
     },
     {
       key = "S",
@@ -72,26 +67,6 @@ local sidepanel = {
       action = A.open_help,
       desc = "Open help",
     },
-    {
-      key = "}",
-      action = A.rotate_cw,
-      desc = "Rotate sidenapel clockwise",
-    },
-    {
-      key = "{",
-      action = A.rotate_ccw,
-      desc = "Rotate sidenapel anticlockwise",
-    },
-    {
-      key = "-",
-      action = A.resize_dec,
-      desc = "Decrease sidenapel size",
-    },
-    {
-      key = "+",
-      action = A.resize_inc,
-      desc = "Increase sidepanel size",
-    }
   }
 }
 
