@@ -538,6 +538,99 @@ ok(not panel:is_open(), "closing an already closed panel is harmless")
 panel:set_active(one)
 ok(not panel:is_open(), "set_active on a closed panel does not open it")
 
+-- 12. Sidepanel in place ----------------------------------------------------
+
+vim.cmd("only")
+local function scratch_file(lines)
+  local path = vim.fn.tempname()
+  vim.fn.writefile(lines, path)
+  vim.cmd.edit(path)
+  return vim.api.nvim_get_current_buf()
+end
+local alt_buf = scratch_file({ "alt" })
+local src_buf = scratch_file({ "1", "2", "3", "4", "5" })
+vim.cmd("normal! 4G")
+vim.wo.number = true
+local src_win = vim.api.nvim_get_current_win()
+local jumps = #vim.fn.getjumplist()[1]
+
+local inplace = Sidepanel.new()
+inplace:add_component(one)
+inplace:add_component(two)
+inplace:set_active(one)
+inplace.inplace = true
+
+inplace:toggle()
+eq(#vim.api.nvim_tabpage_list_wins(0), 1, "in place, opening adds no window")
+eq(inplace.win, src_win, "the panel takes the current window")
+eq(vim.api.nvim_win_get_buf(src_win), one.buf, "showing the active component")
+ok(not vim.wo[src_win].number, "with the panel's window options")
+ok(vim.wo[src_win].winbar:find("[O]ne", 1, true), "and its winbar")
+
+inplace:set_active(two)
+eq(vim.api.nvim_win_get_buf(src_win), two.buf, "set_active swaps within the same window")
+
+inplace:rotate(1)
+inplace:resize(10)
+eq(#vim.api.nvim_tabpage_list_wins(0), 1, "rotate and resize are no-ops in place")
+ok(inplace:is_open(), "and leave the panel open")
+
+inplace:toggle()
+eq(vim.api.nvim_win_get_buf(src_win), src_buf, "closing gives the window its buffer back")
+eq(vim.api.nvim_win_get_cursor(src_win)[1], 4, "on the line it was on")
+ok(vim.wo[src_win].number, "with its own window options")
+eq(vim.wo[src_win].winbar, "", "and no panel winbar")
+eq(vim.fn.bufnr("#"), alt_buf, "the alternate file is untouched")
+eq(#vim.fn.getjumplist()[1], jumps, "and so is the jumplist")
+
+vim.cmd("enew")
+ok(vim.wo[src_win].number, "a buffer entering the window later keeps the window's options")
+eq(vim.wo[src_win].winbar, "", "and gets no panel winbar")
+vim.cmd.buffer(src_buf)
+
+inplace:toggle()
+vim.cmd.buffer(src_buf)
+ok(not inplace:is_open(), "leaving the panel buffer by hand closes the panel")
+inplace:toggle()
+eq(vim.api.nvim_win_get_buf(src_win), two.buf, "so toggle opens it again instead of closing it")
+inplace:toggle()
+
+-- the panel stays in its window, whichever window is current
+vim.cmd("vsplit")
+local other_win = vim.api.nvim_get_current_win()
+vim.api.nvim_set_current_win(src_win)
+inplace:toggle()
+vim.api.nvim_set_current_win(other_win)
+vim.api.nvim_exec_autocmds("VimResized", {})
+eq(inplace.win, src_win, "VimResized leaves an in-place panel in its window")
+eq(vim.api.nvim_win_get_buf(other_win), src_buf, "without taking the current one")
+inplace:toggle()
+eq(vim.api.nvim_win_get_buf(src_win), src_buf, "toggle from another window gives the panel's window back")
+vim.cmd("only")
+
+-- float mode floats, and toggling back returns in place
+inplace:toggle()
+inplace:toggle_layout()
+ok(inplace.float and vim.api.nvim_win_get_config(inplace.win).relative ~= "", "toggle_layout floats the panel")
+eq(vim.api.nvim_win_get_buf(other_win), src_buf, "handing its window back first")
+inplace:toggle_layout()
+eq(inplace.win, other_win, "and toggling again returns it in place")
+inplace:toggle()
+
+local doomed = vim.api.nvim_create_buf(true, true)
+vim.api.nvim_win_set_buf(other_win, doomed)
+inplace:toggle()
+vim.api.nvim_buf_delete(doomed, { force = true })
+inplace:toggle()
+ok(vim.api.nvim_win_is_valid(other_win), "a window whose buffer was wiped meanwhile survives the close")
+ok(not inplace:is_open(), "and the panel does leave it")
+ok(not vim.tbl_contains({ one.buf, two.buf }, vim.api.nvim_win_get_buf(other_win)), "for a fresh buffer")
+
+vim.wo[other_win].winfixbuf = true
+inplace:toggle()
+ok(not inplace:is_open(), "'winfixbuf' refuses the panel")
+vim.wo[other_win].winfixbuf = false
+
 io.write(("passed: %d, failed: %d\n"):format(passed, #failed))
 if #failed > 0 then
   os.exit(1)
