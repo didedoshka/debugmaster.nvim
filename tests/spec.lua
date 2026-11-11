@@ -19,7 +19,7 @@ local function eq(got, want, msg)
 end
 
 -- 1. Every module loads. Catches cross-module breakage at require-time
---    (lua-language-server can't; see CLAUDE.md).
+--    (lua-language-server can't; see AGENTS.md).
 local root = vim.fn.getcwd()
 for _, path in ipairs(vim.fn.glob(root .. "/lua/debugmaster/**/*.lua", false, true)) do
   local mod = path:match("lua/(.+)%.lua$"):gsub("/", ".")

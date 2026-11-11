@@ -1,16 +1,9 @@
 #!/usr/bin/env bash
 # PostToolUse gate: on any Lua edit, run the whole offline suite + lua-ls check.
-# Exit 2 feeds diagnostics back to Claude at the edit that caused the break.
+# Exit 2 feeds diagnostics back to the agent at the edit that caused the break.
 set -u
 
-input=$(cat)
-file=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')
-case "$file" in
-  *.lua) ;;
-  *) exit 0 ;;
-esac
-
-root="$(cd "$(dirname "$0")/../.." && pwd)"
+root="$(cd "$(dirname "$0")/.." && pwd)"
 
 out="$(bash "$root/tests/run.sh" 2>&1)"
 if [ $? -ne 0 ]; then

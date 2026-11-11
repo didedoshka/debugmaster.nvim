@@ -1,6 +1,6 @@
 # debugmaster.nvim — session rules
 
-Fork of debugmaster.nvim with a watches panel, developed locally through Claude.
+Fork of debugmaster.nvim with a watches panel, developed locally.
 
 ## Layout
 - `lua/debugmaster/` — source. `init.lua` = public API (`cfg`, `mode`, `keys`, `plugins`);
@@ -25,13 +25,13 @@ Fork of debugmaster.nvim with a watches panel, developed locally through Claude.
 - `tests/run.sh` (offline, end-to-end, ~0.1 s) + `lua-language-server --check .`
   (baseline: **0 problems**; always run from repo root — it can't find `.luarc.json`
   from a subdir). lua-ls does NOT catch cross-module breakage; only the suite does.
-  Tiers and live checks: `.claude/skills/verify/SKILL.md`.
+  Tiers and live checks: `.agents/skills/verify/SKILL.md`.
 
 ## Style & workflow
 - 2-space indent. Formatting comes from lua_ls/EmmyLuaCodeStyle via the `format`
   block in `.luarc.json` — no stylua, don't add it.
 - Keep `---@class dm.*` annotations truthful; the lint gates on them.
 - Commit each verified change (suite + lua-ls green) without asking: on `main`,
-  `area: lowercase summary`, `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
+  `area: lowercase summary`.
   Never rewrite history -- no amend, rebase, or reset past a commit; fix forward
   with a new commit, so nothing is ever lost.
